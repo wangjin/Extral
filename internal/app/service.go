@@ -33,6 +33,7 @@ func NewService() *Service {
 
 func (s *Service) ServiceStartup(ctx context.Context, options application.ServiceOptions) error {
 	s.ctx = ctx
+	ffmpeg.ExtractEmbedded()
 	s.taskMgr.SetCallback(func(t *model.Task) {
 		application.Get().Event.Emit("task:changed", t)
 	})

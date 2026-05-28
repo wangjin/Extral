@@ -63,9 +63,20 @@ tasks:
     generates:
       - rsrc_windows_amd64.syso
 
+  prepare:windows:ffmpeg:
+    desc: Copy FFmpeg binaries for embedding into Windows build
+    cmds:
+      - mkdir -p internal/ffmpeg/bin
+      - cp thirdparty/windows-amd64/ffmpeg.exe internal/ffmpeg/bin/ || true
+      - cp thirdparty/windows-amd64/ffprobe.exe internal/ffmpeg/bin/ || true
+    sources:
+      - thirdparty/windows-amd64/ffmpeg.exe
+    status:
+      - test -f internal/ffmpeg/bin/ffmpeg.exe
+
   build:windows:amd64:
     desc: Build Windows amd64 binary
-    deps: [frontend:build, generate:windows:syso]
+    deps: [frontend:build, generate:windows:syso, prepare:windows:ffmpeg]
     cmds:
       - GOOS=windows GOARCH=amd64 go build -ldflags "-H windowsgui -X main.version={{.VERSION}}" -o {{.BUILD_DIR}}/{{.APP_NAME}}-windows-amd64.exe .
 
@@ -148,13 +159,11 @@ tasks:
       - hdiutil create -volname "Extral" -srcfolder /tmp/{{.APP_NAME}}-dmg -ov -format UDZO {{.BUILD_DIR}}/{{.APP_NAME}}-macos.dmg
 
   package:windows:
-    desc: Package Windows exe with FFmpeg
+    desc: Package Windows exe
     deps: [build:windows:amd64]
     cmds:
       - mkdir -p {{.BUILD_DIR}}/windows-dist
       - cp {{.BUILD_DIR}}/{{.APP_NAME}}-windows-amd64.exe {{.BUILD_DIR}}/windows-dist/
-      - cp thirdparty/windows-amd64/ffmpeg.exe {{.BUILD_DIR}}/windows-dist/ || true
-      - cp thirdparty/windows-amd64/ffprobe.exe {{.BUILD_DIR}}/windows-dist/ || true
 
   test:
     desc: Run Go tests

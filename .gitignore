@@ -3,6 +3,9 @@ node_modules/
 dist/
 build/
 *.syso
+internal/ffmpeg/bin/*.exe
+internal/ffmpeg/bin/ffmpeg
+internal/ffmpeg/bin/ffprobe
 *.dmg
 .DS_Store
 coverage.out

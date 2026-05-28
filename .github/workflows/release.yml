@@ -44,12 +44,15 @@ jobs:
           Expand-Archive ffmpeg.zip -DestinationPath ffmpeg-temp
           cp ffmpeg-temp/ffmpeg-*-essentials_build/bin/ffmpeg.exe thirdparty/windows-amd64/
           cp ffmpeg-temp/ffmpeg-*-essentials_build/bin/ffprobe.exe thirdparty/windows-amd64/
+          mkdir -p internal/ffmpeg/bin
+          cp thirdparty/windows-amd64/ffmpeg.exe internal/ffmpeg/bin/
+          cp thirdparty/windows-amd64/ffprobe.exe internal/ffmpeg/bin/
           rm -rf ffmpeg.zip ffmpeg-temp
       - run: task package:windows
       - uses: actions/upload-artifact@v4
         with:
           name: Extral-windows-amd64
-          path: build/bin/windows-dist/
+          path: build/bin/Extral-windows-amd64.exe
 
   build-macos:
     runs-on: macos-26
@@ -154,5 +157,5 @@ jobs:
           tag_name: ${{ github.event.inputs.version || github.ref_name }}
           body: ${{ steps.notes.outputs.body }}
           files: |
-            artifacts/Extral-windows-amd64/**/*
+            artifacts/Extral-windows-amd64/*.exe
             artifacts/Extral-macos/*.dmg

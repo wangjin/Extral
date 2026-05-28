@@ -2,6 +2,7 @@ package ffmpeg
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -19,6 +20,45 @@ func NewManager() *Manager {
 	return &Manager{execPath: execPath}
 }
 
+func embeddedCacheDir() string {
+	dir, err := os.UserCacheDir()
+	if err != nil {
+		dir = os.TempDir()
+	}
+	return filepath.Join(dir, "Extral", "ffmpeg")
+}
+
+func ExtractEmbedded() {
+	names, err := fs.ReadDir(EmbeddedBinaries, "bin")
+	if err != nil {
+		return
+	}
+
+	cacheDir := embeddedCacheDir()
+	os.MkdirAll(cacheDir, 0755)
+
+	for _, entry := range names {
+		if entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		if strings.HasPrefix(name, ".") {
+			continue
+		}
+
+		data, err := EmbeddedBinaries.ReadFile("bin/" + name)
+		if err != nil {
+			continue
+		}
+
+		dest := filepath.Join(cacheDir, name)
+		if existing, err := os.Stat(dest); err == nil && int(existing.Size()) == len(data) {
+			continue
+		}
+		os.WriteFile(dest, data, 0755)
+	}
+}
+
 func (m *Manager) Paths() (ffmpeg string, ffprobe string) {
 	dir := filepath.Dir(m.execPath)
 
@@ -31,8 +71,17 @@ func (m *Manager) Paths() (ffmpeg string, ffprobe string) {
 			ffprobe = filepath.Join(dir, "ffprobe")
 		}
 	} else if runtime.GOOS == "windows" {
-		ffmpeg = filepath.Join(dir, "ffmpeg.exe")
-		ffprobe = filepath.Join(dir, "ffprobe.exe")
+		// Prefer embedded binaries extracted to cache
+		cacheDir := embeddedCacheDir()
+		cacheFFmpeg := filepath.Join(cacheDir, "ffmpeg.exe")
+		cacheFFprobe := filepath.Join(cacheDir, "ffprobe.exe")
+		if _, err := os.Stat(cacheFFmpeg); err == nil {
+			ffmpeg = cacheFFmpeg
+			ffprobe = cacheFFprobe
+		} else {
+			ffmpeg = filepath.Join(dir, "ffmpeg.exe")
+			ffprobe = filepath.Join(dir, "ffprobe.exe")
+		}
 	} else {
 		ffmpeg = filepath.Join(dir, "ffmpeg")
 		ffprobe = filepath.Join(dir, "ffprobe")
