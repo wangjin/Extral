@@ -11,12 +11,32 @@
 - **任务队列**：串行执行，详细进度显示（进度条、帧数、剩余时间）
 - **文件命名**：序号、时间戳、视频名+序号、视频名+时间
 
+## 下载
+
+前往 [Releases](../../releases) 下载最新版本。
+
+| 平台 | 文件 |
+|------|------|
+| macOS | `Extral-macos.dmg` |
+| Windows | `Extral-windows-amd64.exe` |
+
+### macOS 使用说明
+
+双击打开 .dmg 文件，将 Extral 拖入 Applications 文件夹即可。
+
+如果提示"无法打开"或"已损坏"，请在终端执行：
+
+```bash
+xattr -cr /Applications/Extral.app
+```
+
 ## 开发环境
 
-- Go 1.25+
-- Node.js 16+
+- Go 1.26+
+- Node.js 22+
 - Wails 3 CLI：`go install github.com/wailsapp/wails/v3/cmd/wails3@latest`
 - Taskfile：`go install github.com/go-task/task/v3/cmd/task@latest`
+- go-winres：`go install github.com/tc-hib/go-winres@latest`（Windows 构建需要）
 
 ## 准备 FFmpeg 二进制
 
@@ -72,7 +92,7 @@ thirdparty/
 wails3 dev
 
 # 运行测试
-go test ./internal/... -v
+task test
 
 # 生成 Wails 绑定
 wails3 generate bindings -ts -d frontend/bindings .
@@ -87,11 +107,24 @@ task build
 # macOS .app + .dmg
 task package:darwin:dmg
 
-# Windows .exe
+# Windows .exe（含图标）
 task package:windows
 
 # 清理构建产物
 task clean
+```
+
+应用图标源文件位于 `assets/icon.png`，构建时自动生成 macOS `.icns` 和 Windows `.syso` 资源。
+
+## CI/CD
+
+- **PR 检查**：`.github/workflows/build.yml` — PR 到 main 时自动运行测试
+- **发布构建**：`.github/workflows/release.yml` — 推送 `v*` 标签时自动构建 macOS/Windows 产物并创建 GitHub Release
+
+```bash
+# 发布新版本
+git tag v1.0.0
+git push origin v1.0.0
 ```
 
 ## 技术栈
