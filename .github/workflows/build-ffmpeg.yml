@@ -54,6 +54,7 @@ jobs:
           msystem: MINGW64
           install: >-
             mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-nasm
             make
             git
             diffutils
@@ -76,7 +77,8 @@ jobs:
             --enable-ffprobe \
             --disable-doc \
             --disable-network \
-            --disable-autodetect
+            --disable-autodetect \
+            --disable-x86asm
 
           make -j$(nproc)
           strip ffmpeg.exe ffprobe.exe
