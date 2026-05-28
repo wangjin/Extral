@@ -1,0 +1,105 @@
+name: Build FFmpeg
+
+on:
+  workflow_dispatch:
+
+env:
+  FFMPEG_VERSION: "n8.1.1"
+
+jobs:
+  build-macos-arm64:
+    runs-on: macos-latest
+    steps:
+      - name: Build FFmpeg
+        run: |
+          git clone --branch ${{ env.FFMPEG_VERSION }} --depth 1 https://github.com/FFmpeg/FFmpeg.git ffmpeg-src
+          cd ffmpeg-src
+
+          ./configure \
+            --disable-everything \
+            --enable-decoder=h264,hevc,mjpeg,mpeg4,vp8,vp9 \
+            --enable-demuxer=mov,matroska,avi,flv,mpjpeg \
+            --enable-parser=h264,hevc,mjpeg,mpeg4video,vp8,vp9 \
+            --enable-protocol=file \
+            --enable-muxer=image2 \
+            --enable-encoder=png,mjpeg \
+            --enable-filter=scale \
+            --enable-ffmpeg \
+            --enable-ffprobe \
+            --disable-doc \
+            --disable-network \
+            --disable-autodetect
+
+          make -j$(sysctl -n hw.ncpu)
+          strip ffmpeg ffprobe
+
+          echo "=== Binary sizes ==="
+          ls -lh ffmpeg ffprobe
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg-darwin-arm64
+          path: |
+            ffmpeg-src/ffmpeg
+            ffmpeg-src/ffprobe
+
+  build-windows-amd64:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: >-
+            mingw-w64-x86_64-gcc
+            make
+            git
+            diffutils
+
+      - name: Build FFmpeg
+        run: |
+          git clone --branch ${{ env.FFMPEG_VERSION }} --depth 1 https://github.com/FFmpeg/FFmpeg.git ffmpeg-src
+          cd ffmpeg-src
+
+          ./configure \
+            --disable-everything \
+            --enable-decoder=h264,hevc,mjpeg,mpeg4,vp8,vp9 \
+            --enable-demuxer=mov,matroska,avi,flv,mpjpeg \
+            --enable-parser=h264,hevc,mjpeg,mpeg4video,vp8,vp9 \
+            --enable-protocol=file \
+            --enable-muxer=image2 \
+            --enable-encoder=png,mjpeg \
+            --enable-filter=scale \
+            --enable-ffmpeg \
+            --enable-ffprobe \
+            --disable-doc \
+            --disable-network \
+            --disable-autodetect
+
+          make -j$(nproc)
+          strip ffmpeg.exe ffprobe.exe
+
+          echo "=== Binary sizes ==="
+          ls -lh ffmpeg.exe ffprobe.exe
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg-windows-amd64
+          path: |
+            ffmpeg-src/ffmpeg.exe
+            ffmpeg-src/ffprobe.exe
+
+  report:
+    needs: [build-macos-arm64, build-windows-amd64]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Show binary sizes
+        run: |
+          echo "## FFmpeg Binary Sizes"
+          echo ""
+          find artifacts -type f \( -name 'ffmpeg' -o -name 'ffmpeg.exe' -o -name 'ffprobe' -o -name 'ffprobe.exe' \) -exec ls -lh {} \; | awk '{print $NF, $5}'
