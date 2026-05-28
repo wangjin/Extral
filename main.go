@@ -18,7 +18,7 @@ func main() {
 	appService := app.NewService()
 
 	appInstance := application.New(application.Options{
-		Name:        "视频抽帧工具",
+		Name:        "Extral",
 		Description: "视频抽帧桌面客户端",
 		Services: []application.Service{
 			application.NewService(appService),
@@ -32,7 +32,7 @@ func main() {
 	})
 
 	appInstance.Window.NewWithOptions(application.WebviewWindowOptions{
-		Title:           "视频抽帧工具",
+		Title:           "Extral",
 		Width:           960,
 		Height:          720,
 		DevToolsEnabled: true,

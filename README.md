@@ -1,6 +1,6 @@
-# 视频抽帧工具
+# Extral
 
-基于 Wails 3 + React + Go 构建的跨平台视频抽帧桌面客户端，内嵌 FFmpeg，双击即用。
+跨平台视频抽帧桌面客户端，基于 Wails 3 + React + Go 构建，内嵌 FFmpeg，双击即用。
 
 ## 功能
 

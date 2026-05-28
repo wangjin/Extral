@@ -24,7 +24,7 @@ function App() {
   return (
     <div className="app">
       <header className="toolbar">
-        <div className="toolbar-title">视频抽帧工具</div>
+        <div className="toolbar-title">Extral</div>
         <div className="toolbar-actions">
           <button className="btn btn-primary" onClick={addFiles}>选择视频</button>
           <button className="btn btn-secondary" onClick={addFolder}>选择文件夹</button>

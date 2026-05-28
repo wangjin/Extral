@@ -1,7 +1,7 @@
 version: "3"
 
 vars:
-  APP_NAME: video-extractor
+  APP_NAME: Extral
   FRONTEND_DIR: frontend
   BUILD_DIR: build/bin
   BINDINGS_DIR: frontend/bindings
@@ -75,13 +75,13 @@ tasks:
         <plist version="1.0">
         <dict>
           <key>CFBundleExecutable</key>
-          <string>video-extractor</string>
+          <string>Extral</string>
           <key>CFBundleIdentifier</key>
-          <string>com.video-extractor.app</string>
+          <string>com.extral.app</string>
           <key>CFBundleName</key>
-          <string>视频抽帧工具</string>
+          <string>Extral</string>
           <key>CFBundleDisplayName</key>
-          <string>视频抽帧工具</string>
+          <string>Extral</string>
           <key>CFBundleVersion</key>
           <string>{{.VERSION}}</string>
           <key>CFBundleShortVersionString</key>
@@ -117,7 +117,7 @@ tasks:
       - mkdir -p /tmp/{{.APP_NAME}}-dmg
       - cp -R {{.BUILD_DIR}}/{{.APP_NAME}}.app /tmp/{{.APP_NAME}}-dmg/
       - ln -sf /Applications /tmp/{{.APP_NAME}}-dmg/Applications
-      - hdiutil create -volname "视频抽帧工具" -srcfolder /tmp/{{.APP_NAME}}-dmg -ov -format UDZO {{.BUILD_DIR}}/{{.APP_NAME}}-macos.dmg
+      - hdiutil create -volname "Extral" -srcfolder /tmp/{{.APP_NAME}}-dmg -ov -format UDZO {{.BUILD_DIR}}/{{.APP_NAME}}-macos.dmg
 
   package:windows:
     desc: Package Windows exe with FFmpeg
