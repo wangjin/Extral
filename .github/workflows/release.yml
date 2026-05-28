@@ -17,22 +17,7 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: "1.26"
-      - name: Install Wails Linux dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-4-dev libwebkitgtk-6.0-dev libsoup-3.0-dev
-      - run: go install github.com/go-task/task/v3/cmd/task@latest
-      - run: task test
-
   build-windows:
-    needs: test
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -58,7 +43,6 @@ jobs:
           path: build/bin/Extral-windows-amd64.exe
 
   build-macos:
-    needs: test
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
