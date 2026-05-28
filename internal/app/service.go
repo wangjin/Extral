@@ -22,13 +22,19 @@ type Service struct {
 	ctx       context.Context
 	taskMgr   *task.Manager
 	ffmpegMgr *ffmpeg.Manager
+	version   string
 }
 
-func NewService() *Service {
+func NewService(version string) *Service {
 	return &Service{
 		taskMgr:   task.NewManager(),
 		ffmpegMgr: ffmpeg.NewManager(),
+		version:   version,
 	}
+}
+
+func (s *Service) GetVersion() string {
+	return s.version
 }
 
 func (s *Service) ServiceStartup(ctx context.Context, options application.ServiceOptions) error {

@@ -16,7 +16,7 @@ var version = "dev"
 var assets embed.FS
 
 func main() {
-	appService := app.NewService()
+	appService := app.NewService(version)
 
 	appInstance := application.New(application.Options{
 		Name:        "Extral",

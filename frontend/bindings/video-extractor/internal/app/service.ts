@@ -32,6 +32,10 @@ export function GetTasks(): $CancellablePromise<(model$0.Task | null)[]> {
     });
 }
 
+export function GetVersion(): $CancellablePromise<string> {
+    return $Call.ByID(2084219224);
+}
+
 export function GetVideoInfo(videoPath: string): $CancellablePromise<video$0.Info | null> {
     return $Call.ByID(1063243083, videoPath).then(($result: any) => {
         return $$createType4($result);

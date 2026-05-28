@@ -13,7 +13,9 @@ export default function TaskList({ tasks, selectedTaskId, onSelectTask, onRemove
   if (tasks.length === 0) {
     return (
       <div className="task-list-empty">
-        <p>点击上方"选择视频"或"选择文件夹"添加视频文件</p>
+        <div className="task-empty-icon">▶</div>
+        <div className="task-empty-text">点击「选择视频」或「选择文件夹」添加视频</div>
+        <div className="task-empty-hint">支持 MP4、MKV、AVI、FLV 等常见格式</div>
       </div>
     )
   }

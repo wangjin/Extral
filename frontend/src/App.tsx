@@ -6,7 +6,8 @@ import UpdateToast from './components/UpdateToast'
 import UpdateModal from './components/UpdateModal'
 import { useTaskQueue } from './hooks/useTaskQueue'
 import { useUpdate } from './hooks/useUpdate'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
+import * as AppService from '../bindings/video-extractor/internal/app/service'
 import * as UpdaterService from '../bindings/video-extractor/internal/updater/service'
 
 function App() {
@@ -26,6 +27,11 @@ function App() {
 
   const { status, info, progress, error, ignoreUpdate } = useUpdate()
   const [showUpdateModal, setShowUpdateModal] = useState(false)
+  const [version, setVersion] = useState('')
+
+  useEffect(() => {
+    AppService.GetVersion().then(v => setVersion(v)).catch(() => {})
+  }, [])
 
   const selectedTask = tasks.find(t => t.id === selectedTaskId)
 
@@ -64,7 +70,11 @@ function App() {
   return (
     <div className="app">
       <header className="toolbar">
-        <div className="toolbar-title">Extral</div>
+        <div className="toolbar-brand">
+          <img className="toolbar-logo" src="/logo.png" alt="Extral" />
+          <div className="toolbar-title">Extral</div>
+          {version && <span className="toolbar-version">{version}</span>}
+        </div>
         <div className="toolbar-actions">
           <button className="btn btn-primary" onClick={addFiles}>选择视频</button>
           <button className="btn btn-secondary" onClick={addFolder}>选择文件夹</button>
