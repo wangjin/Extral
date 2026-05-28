@@ -1,7 +1,8 @@
 .superpowers/
 node_modules/
 dist/
-build/bin/
+build/
+*.syso
 *.dmg
 .DS_Store
 coverage.out

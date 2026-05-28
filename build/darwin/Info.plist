@@ -11,11 +11,13 @@
   <key>CFBundleDisplayName</key>
   <string>Extral</string>
   <key>CFBundleVersion</key>
-  <string>daaee41</string>
+  <string>4186a4f</string>
   <key>CFBundleShortVersionString</key>
-  <string>daaee41</string>
+  <string>4186a4f</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
+  <key>CFBundleIconFile</key>
+  <string>Extral</string>
   <key>LSMinimumSystemVersion</key>
   <string>11.0</string>
   <key>NSHighResolutionCapable</key>

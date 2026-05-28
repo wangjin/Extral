@@ -53,9 +53,19 @@ tasks:
     cmds:
       - GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.version={{.VERSION}}" -o {{.BUILD_DIR}}/{{.APP_NAME}}-darwin-amd64 .
 
+  generate:windows:syso:
+    desc: Generate Windows .syso resource file with icon
+    cmds:
+      - go-winres make --product-version={{.VERSION}} --file-version={{.VERSION}}
+    sources:
+      - winres/winres.json
+      - assets/icon.png
+    generates:
+      - rsrc_windows_amd64.syso
+
   build:windows:amd64:
     desc: Build Windows amd64 binary
-    deps: [frontend:build]
+    deps: [frontend:build, generate:windows:syso]
     cmds:
       - GOOS=windows GOARCH=amd64 go build -ldflags "-H windowsgui -X main.version={{.VERSION}}" -o {{.BUILD_DIR}}/{{.APP_NAME}}-windows-amd64.exe .
 
@@ -88,6 +98,8 @@ tasks:
           <string>{{.VERSION}}</string>
           <key>CFBundlePackageType</key>
           <string>APPL</string>
+          <key>CFBundleIconFile</key>
+          <string>Extral</string>
           <key>LSMinimumSystemVersion</key>
           <string>11.0</string>
           <key>NSHighResolutionCapable</key>
@@ -95,16 +107,32 @@ tasks:
         </dict>
         </plist>
         EOF
-    status:
-      - test -f build/darwin/Info.plist
+
+  generate:darwin:icns:
+    desc: Generate macOS .icns from assets/icon.png
+    cmds:
+      - mkdir -p build/darwin/Extral.iconset
+      - |
+        SRC="assets/icon.png"
+        ICONSET="build/darwin/Extral.iconset"
+        for size in 16 32 64 128 256 512; do
+          sips -z $size $size "$SRC" --out "$ICONSET/icon_${size}x${size}.png" -s format png >/dev/null 2>&1
+          sips -z $((size*2)) $((size*2)) "$SRC" --out "$ICONSET/icon_${size}x${size}@2x.png" -s format png >/dev/null 2>&1
+        done
+        iconutil -c icns "$ICONSET" -o build/darwin/Extral.icns
+    sources:
+      - assets/icon.png
+    generates:
+      - build/darwin/Extral.icns
 
   package:darwin:
     desc: Package macOS .app bundle
-    deps: [build:darwin, generate:darwin:plist]
+    deps: [build:darwin, generate:darwin:plist, generate:darwin:icns]
     cmds:
       - mkdir -p {{.BUILD_DIR}}/{{.APP_NAME}}.app/Contents/{MacOS,Resources,Resources/ffmpeg}
       - cp {{.BUILD_DIR}}/{{.APP_NAME}} {{.BUILD_DIR}}/{{.APP_NAME}}.app/Contents/MacOS
       - cp build/darwin/Info.plist {{.BUILD_DIR}}/{{.APP_NAME}}.app/Contents
+      - cp build/darwin/Extral.icns {{.BUILD_DIR}}/{{.APP_NAME}}.app/Contents/Resources/Extral.icns
       - cp thirdparty/darwin-arm64/ffmpeg {{.BUILD_DIR}}/{{.APP_NAME}}.app/Contents/Resources/ffmpeg/ || true
       - cp thirdparty/darwin-arm64/ffprobe {{.BUILD_DIR}}/{{.APP_NAME}}.app/Contents/Resources/ffmpeg/ || true
       - chmod +x {{.BUILD_DIR}}/{{.APP_NAME}}.app/Contents/Resources/ffmpeg/* || true
@@ -136,6 +164,7 @@ tasks:
   clean:
     desc: Remove all build artifacts
     cmds:
-      - rm -rf {{.BUILD_DIR}}
+      - rm -rf build
+      - rm -f *.syso
       - rm -rf {{.FRONTEND_DIR}}/dist
       - rm -rf {{.FRONTEND_DIR}}/node_modules
