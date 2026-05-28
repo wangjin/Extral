@@ -1,0 +1,12 @@
+{
+  "$schema": "https://wails.io/schemas/config.v3.json",
+  "name": "视频抽帧工具",
+  "outputfilename": "video-extractor",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "wangjin"
+  }
+}

@@ -1,0 +1,10 @@
+.superpowers/
+node_modules/
+dist/
+build/bin/
+thirdparty/
+*.exe
+*.dmg
+.DS_Store
+coverage.out
+coverage.html
