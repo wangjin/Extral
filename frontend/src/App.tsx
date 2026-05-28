@@ -2,7 +2,12 @@ import './App.css'
 import TaskList from './components/TaskList'
 import ConfigPanel from './components/ConfigPanel'
 import ActionBar from './components/ActionBar'
+import UpdateToast from './components/UpdateToast'
+import UpdateModal from './components/UpdateModal'
 import { useTaskQueue } from './hooks/useTaskQueue'
+import { useUpdate } from './hooks/useUpdate'
+import { useState, useCallback } from 'react'
+import * as UpdaterService from '../bindings/video-extractor/internal/updater/service'
 
 function App() {
   const {
@@ -19,7 +24,42 @@ function App() {
     selectOutputDir,
   } = useTaskQueue()
 
+  const { status, info, progress, error, ignoreUpdate } = useUpdate()
+  const [showUpdateModal, setShowUpdateModal] = useState(false)
+
   const selectedTask = tasks.find(t => t.id === selectedTaskId)
+
+  const handleViewDetails = useCallback(() => {
+    setShowUpdateModal(true)
+  }, [])
+
+  const handleStartDownload = useCallback(async () => {
+    try { await UpdaterService.StartDownload() } catch (e) { console.error('StartDownload failed:', e) }
+  }, [])
+
+  const handleCancelDownload = useCallback(async () => {
+    await UpdaterService.CancelDownload()
+    setShowUpdateModal(false)
+  }, [])
+
+  const handleInstall = useCallback(async () => {
+    await UpdaterService.InstallAndRestart()
+  }, [])
+
+  const handleManualDownload = useCallback(async () => {
+    setShowUpdateModal(false)
+    await UpdaterService.OpenReleasePage()
+  }, [])
+
+  const handleDismissToast = useCallback(() => {
+    ignoreUpdate()
+  }, [ignoreUpdate])
+
+  const handleDismissModal = useCallback(() => {
+    if (status !== 'downloading') {
+      setShowUpdateModal(false)
+    }
+  }, [status])
 
   return (
     <div className="app">
@@ -51,6 +91,22 @@ function App() {
         tasks={tasks}
         onStartAll={startAll}
         onClear={clearTasks}
+      />
+
+      {status === 'available' && !showUpdateModal && info && (
+        <UpdateToast info={info} onViewDetails={handleViewDetails} onDismiss={handleDismissToast} />
+      )}
+      <UpdateModal
+        visible={showUpdateModal}
+        status={status}
+        info={info}
+        progress={progress}
+        error={error}
+        onStartDownload={handleStartDownload}
+        onCancel={handleCancelDownload}
+        onInstall={handleInstall}
+        onManualDownload={handleManualDownload}
+        onClose={handleDismissModal}
       />
     </div>
   )

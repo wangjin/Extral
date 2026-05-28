@@ -7,6 +7,7 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 
 	"video-extractor/internal/app"
+	"video-extractor/internal/updater"
 )
 
 var version = "dev"
@@ -22,6 +23,7 @@ func main() {
 		Description: "视频抽帧桌面客户端",
 		Services: []application.Service{
 			application.NewService(appService),
+			application.NewService(updater.NewService(version, "wangjin/video-extractor")),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.BundledAssetFileServer(assets),
