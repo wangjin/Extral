@@ -291,19 +291,10 @@ button:disabled {
 .config-panel {
   flex: 1;
   overflow-y: auto;
-  padding: 18px;
-}
-
-.config-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px 24px;
-}
-
-.config-col {
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 
 .config-section {
@@ -331,8 +322,9 @@ button:disabled {
 /* ── Button Group (mode pills) ── */
 .btn-group {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 4px;
+  overflow-x: auto;
 }
 
 .btn-option {

@@ -6,8 +6,8 @@ interface Props {
 }
 
 const MODES = [
-  { value: 'every-second', label: '每N秒' },
   { value: 'every-frame', label: '每N帧' },
+  { value: 'every-second', label: '每N秒' },
   { value: 'time-range', label: '时间范围' },
   { value: 'total-frames', label: '总帧数' },
   { value: 'keyframe', label: '关键帧' },
@@ -41,7 +41,7 @@ export default function ModeSelector({ task, onChange }: Props) {
             <input
               type="number"
               className="input-sm"
-              value={task.params.frameInterval || 10}
+              value={task.params.frameInterval || 1}
               min={1}
               onChange={e => update({
                 params: { ...task.params, frameInterval: parseInt(e.target.value) || 1 }

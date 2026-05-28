@@ -65,8 +65,9 @@ func NewDefaultTask(videoPath string) *Task {
 		ID:        uuid.New().String(),
 		Status:    StatusPending,
 		VideoPath: videoPath,
-		Mode:      ModeEverySecond,
+		Mode:      ModeEveryFrame,
 		Params: ModeParams{
+			FrameInterval:  1,
 			SecondInterval: 1,
 			SceneThreshold: 0.3,
 		},
