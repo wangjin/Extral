@@ -63,11 +63,13 @@ export function useTaskQueue() {
 
   const removeTask = useCallback(async (id: string) => {
     await Service.RemoveTask(id)
+    setTasks(prev => prev.filter(t => t.id !== id))
     setSelectedTaskId(prev => prev === id ? null : prev)
   }, [])
 
   const clearTasks = useCallback(async () => {
     await Service.ClearTasks()
+    setTasks([])
     setSelectedTaskId(null)
   }, [])
 
