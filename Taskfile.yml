@@ -1,0 +1,141 @@
+version: "3"
+
+vars:
+  APP_NAME: video-extractor
+  FRONTEND_DIR: frontend
+  BUILD_DIR: build/bin
+  BINDINGS_DIR: frontend/bindings
+  VERSION:
+    sh: git describe --tags --always 2>/dev/null || echo "dev"
+
+env:
+  CGO_ENABLED: 1
+
+tasks:
+  dev:
+    desc: Run in development mode with hot reload
+    cmds:
+      - wails3 dev
+
+  generate:
+    desc: Generate TypeScript bindings from Go services
+    cmds:
+      - wails3 generate bindings -ts -d {{.BINDINGS_DIR}} .
+
+  frontend:install:
+    desc: Install frontend dependencies
+    dir: "{{.FRONTEND_DIR}}"
+    cmds:
+      - npm install
+
+  frontend:build:
+    desc: Build frontend assets
+    deps: [frontend:install, generate]
+    dir: "{{.FRONTEND_DIR}}"
+    cmds:
+      - npm run build
+
+  build:darwin:
+    desc: Build macOS binary for current architecture
+    deps: [frontend:build]
+    cmds:
+      - go build -ldflags "-X main.version={{.VERSION}}" -o {{.BUILD_DIR}}/{{.APP_NAME}} .
+
+  build:darwin:arm64:
+    desc: Build macOS arm64 binary (Apple Silicon)
+    deps: [frontend:build]
+    cmds:
+      - GOOS=darwin GOARCH=arm64 go build -ldflags "-X main.version={{.VERSION}}" -o {{.BUILD_DIR}}/{{.APP_NAME}}-darwin-arm64 .
+
+  build:darwin:amd64:
+    desc: Build macOS amd64 binary
+    deps: [frontend:build]
+    cmds:
+      - GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.version={{.VERSION}}" -o {{.BUILD_DIR}}/{{.APP_NAME}}-darwin-amd64 .
+
+  build:windows:amd64:
+    desc: Build Windows amd64 binary
+    deps: [frontend:build]
+    cmds:
+      - GOOS=windows GOARCH=amd64 go build -ldflags "-H windowsgui -X main.version={{.VERSION}}" -o {{.BUILD_DIR}}/{{.APP_NAME}}-windows-amd64.exe .
+
+  build:
+    desc: Build binary for current platform
+    cmds:
+      - task: build:darwin
+
+  generate:darwin:plist:
+    desc: Generate macOS Info.plist
+    cmds:
+      - mkdir -p build/darwin
+      - |
+        cat > build/darwin/Info.plist << 'EOF'
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+          <key>CFBundleExecutable</key>
+          <string>video-extractor</string>
+          <key>CFBundleIdentifier</key>
+          <string>com.video-extractor.app</string>
+          <key>CFBundleName</key>
+          <string>视频抽帧工具</string>
+          <key>CFBundleDisplayName</key>
+          <string>视频抽帧工具</string>
+          <key>CFBundleVersion</key>
+          <string>{{.VERSION}}</string>
+          <key>CFBundleShortVersionString</key>
+          <string>{{.VERSION}}</string>
+          <key>CFBundlePackageType</key>
+          <string>APPL</string>
+          <key>LSMinimumSystemVersion</key>
+          <string>11.0</string>
+          <key>NSHighResolutionCapable</key>
+          <true/>
+        </dict>
+        </plist>
+        EOF
+    status:
+      - test -f build/darwin/Info.plist
+
+  package:darwin:
+    desc: Package macOS .app bundle
+    deps: [build:darwin, generate:darwin:plist]
+    cmds:
+      - mkdir -p {{.BUILD_DIR}}/{{.APP_NAME}}.app/Contents/{MacOS,Resources,Resources/ffmpeg}
+      - cp {{.BUILD_DIR}}/{{.APP_NAME}} {{.BUILD_DIR}}/{{.APP_NAME}}.app/Contents/MacOS
+      - cp build/darwin/Info.plist {{.BUILD_DIR}}/{{.APP_NAME}}.app/Contents
+      - cp thirdparty/darwin-arm64/ffmpeg {{.BUILD_DIR}}/{{.APP_NAME}}.app/Contents/Resources/ffmpeg/ || true
+      - cp thirdparty/darwin-arm64/ffprobe {{.BUILD_DIR}}/{{.APP_NAME}}.app/Contents/Resources/ffmpeg/ || true
+      - chmod +x {{.BUILD_DIR}}/{{.APP_NAME}}.app/Contents/Resources/ffmpeg/* || true
+      - codesign --force --deep --sign - {{.BUILD_DIR}}/{{.APP_NAME}}.app || true
+
+  package:darwin:dmg:
+    desc: Package macOS .dmg installer
+    deps: [package:darwin]
+    cmds:
+      - mkdir -p /tmp/{{.APP_NAME}}-dmg
+      - cp -R {{.BUILD_DIR}}/{{.APP_NAME}}.app /tmp/{{.APP_NAME}}-dmg/
+      - ln -sf /Applications /tmp/{{.APP_NAME}}-dmg/Applications
+      - hdiutil create -volname "视频抽帧工具" -srcfolder /tmp/{{.APP_NAME}}-dmg -ov -format UDZO {{.BUILD_DIR}}/{{.APP_NAME}}-macos.dmg
+
+  package:windows:
+    desc: Package Windows exe with FFmpeg
+    deps: [build:windows:amd64]
+    cmds:
+      - mkdir -p {{.BUILD_DIR}}/windows-dist
+      - cp {{.BUILD_DIR}}/{{.APP_NAME}}-windows-amd64.exe {{.BUILD_DIR}}/windows-dist/
+      - cp thirdparty/windows-amd64/ffmpeg.exe {{.BUILD_DIR}}/windows-dist/ || true
+      - cp thirdparty/windows-amd64/ffprobe.exe {{.BUILD_DIR}}/windows-dist/ || true
+
+  test:
+    desc: Run Go tests
+    cmds:
+      - go test ./internal/... -v
+
+  clean:
+    desc: Remove all build artifacts
+    cmds:
+      - rm -rf {{.BUILD_DIR}}
+      - rm -rf {{.FRONTEND_DIR}}/dist
+      - rm -rf {{.FRONTEND_DIR}}/node_modules
