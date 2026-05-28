@@ -78,6 +78,7 @@ export class Task {
     "total": number;
     "elapsedTime": number;
     "error": string;
+    "logs": string[];
     "createdAt": time$0.Time;
 
     /** Creates a new Task instance. */
@@ -139,6 +140,9 @@ export class Task {
         if (!("error" in $$source)) {
             this["error"] = "";
         }
+        if (!("logs" in $$source)) {
+            this["logs"] = [];
+        }
         if (!("createdAt" in $$source)) {
             this["createdAt"] = null;
         }
@@ -151,9 +155,13 @@ export class Task {
      */
     static createFrom($$source: any = {}): Task {
         const $$createField4_0 = $$createType1;
+        const $$createField19_0 = $$createType0;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("params" in $$parsedSource) {
             $$parsedSource["params"] = $$createField4_0($$parsedSource["params"]);
+        }
+        if ("logs" in $$parsedSource) {
+            $$parsedSource["logs"] = $$createField19_0($$parsedSource["logs"]);
         }
         return new Task($$parsedSource as Partial<Task>);
     }

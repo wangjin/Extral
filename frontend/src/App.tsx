@@ -27,6 +27,7 @@ function App() {
 
   const { status, info, progress, error, ignoreUpdate } = useUpdate()
   const [showUpdateModal, setShowUpdateModal] = useState(false)
+  const [showLogs, setShowLogs] = useState(false)
   const [version, setVersion] = useState('')
 
   useEffect(() => {
@@ -95,6 +96,24 @@ function App() {
           onUpdateTask={updateTask}
           onSelectOutputDir={selectOutputDir}
         />
+      )}
+
+      {selectedTask && selectedTask.status !== 'pending' && (
+        <div className="log-panel">
+          <div className="log-header" onClick={() => setShowLogs(!showLogs)}>
+            <span className="log-header-title">执行日志 ({(selectedTask.logs || []).length})</span>
+            <span className="log-toggle">{showLogs ? '收起' : '展开'}</span>
+          </div>
+          {showLogs && (
+            <pre className="log-content">
+              {(selectedTask.logs || []).map((line, i) => (
+                <div key={i} className={`log-line ${line.startsWith('[命令') || line.startsWith('[错误') || line.startsWith('[完成') ? 'log-line-highlight' : ''}`}>
+                  {line}
+                </div>
+              ))}
+            </pre>
+          )}
+        </div>
       )}
 
       <ActionBar

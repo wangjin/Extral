@@ -86,6 +86,17 @@ func (m *Manager) ClearTasks() {
 	m.tasks = nil
 }
 
+func (m *Manager) AppendLog(id string, line string) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for i, t := range m.tasks {
+		if t.ID == id {
+			m.tasks[i].Logs = append(m.tasks[i].Logs, line)
+			break
+		}
+	}
+}
+
 func (m *Manager) GetPendingTasks() []*model.Task {
 	m.mu.RLock()
 	defer m.mu.RUnlock()

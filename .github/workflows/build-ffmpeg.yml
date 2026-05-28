@@ -23,7 +23,7 @@ jobs:
             --enable-protocol=file \
             --enable-muxer=image2 \
             --enable-encoder=png,mjpeg \
-            --enable-filter=scale \
+            --enable-filter=scale,select,fps,crop \
             --enable-ffmpeg \
             --enable-ffprobe \
             --disable-doc \
@@ -72,7 +72,7 @@ jobs:
             --enable-protocol=file \
             --enable-muxer=image2 \
             --enable-encoder=png,mjpeg \
-            --enable-filter=scale \
+            --enable-filter=scale,select,fps,crop \
             --enable-ffmpeg \
             --enable-ffprobe \
             --disable-doc \

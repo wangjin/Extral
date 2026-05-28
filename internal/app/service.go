@@ -184,6 +184,7 @@ func (s *Service) executeTask(t *model.Task) {
 
 	t.Status = model.StatusRunning
 	t.Total = info.TotalFrames
+	t.Logs = []string{}
 	s.taskMgr.UpdateTask(t)
 
 	startTime := time.Now()
@@ -201,11 +202,15 @@ func (s *Service) executeTask(t *model.Task) {
 		return
 	}
 
+	ffmpegPath, _ := s.ffmpegMgr.Paths()
+	s.taskMgr.AppendLog(t.ID, fmt.Sprintf("[命令] %s %s", ffmpegPath, strings.Join(args, " ")))
+
 	cmd := s.ffmpegMgr.RunFFmpeg(args...)
 	stderr, _ := cmd.StderrPipe()
 	if err := cmd.Start(); err != nil {
 		t.Status = model.StatusFailed
 		t.Error = fmt.Sprintf("启动FFmpeg失败: %v", err)
+		s.taskMgr.AppendLog(t.ID, fmt.Sprintf("[错误] %v", err))
 		s.taskMgr.UpdateTask(t)
 		return
 	}
@@ -213,6 +218,8 @@ func (s *Service) executeTask(t *model.Task) {
 	scanner := bufio.NewScanner(stderr)
 	for scanner.Scan() {
 		line := scanner.Text()
+		s.taskMgr.AppendLog(t.ID, line)
+
 		frame, _, ok := ffmpeg.ParseProgress(line)
 		if ok && t.Total > 0 {
 			t.Progress = float64(frame) / float64(t.Total) * 100
@@ -227,16 +234,25 @@ func (s *Service) executeTask(t *model.Task) {
 			return
 		}
 	}
-	cmd.Wait()
+	waitErr := cmd.Wait()
 
 	current := s.taskMgr.GetTask(t.ID)
 	if current != nil && current.Status == model.StatusCancelled {
 		return
 	}
 
+	if waitErr != nil {
+		t.Status = model.StatusFailed
+		t.Error = fmt.Sprintf("FFmpeg 退出异常: %v", waitErr)
+		s.taskMgr.AppendLog(t.ID, fmt.Sprintf("[退出码] %v", waitErr))
+		s.taskMgr.UpdateTask(t)
+		return
+	}
+
 	t.Status = model.StatusCompleted
 	t.Progress = 100
 	t.ElapsedTime = int64(time.Since(startTime).Seconds())
+	s.taskMgr.AppendLog(t.ID, "[完成]")
 	s.taskMgr.UpdateTask(t)
 }
 
@@ -249,8 +265,15 @@ func (s *Service) executeTimestamps(t *model.Task, startTime time.Time) {
 			return
 		}
 
+		ffmpegPath, _ := s.ffmpegMgr.Paths()
+		s.taskMgr.AppendLog(t.ID, fmt.Sprintf("[命令 %d/%d] %s %s", i+1, totalCmds, ffmpegPath, strings.Join(args, " ")))
+
 		cmd := s.ffmpegMgr.RunFFmpeg(args...)
-		cmd.Run()
+		out, runErr := cmd.CombinedOutput()
+		if runErr != nil {
+			s.taskMgr.AppendLog(t.ID, string(out))
+			s.taskMgr.AppendLog(t.ID, fmt.Sprintf("[错误] %v", runErr))
+		}
 
 		t.Progress = float64(i+1) / float64(totalCmds) * 100
 		t.Current = i + 1
@@ -258,8 +281,14 @@ func (s *Service) executeTimestamps(t *model.Task, startTime time.Time) {
 		s.taskMgr.UpdateTask(t)
 	}
 
+	current := s.taskMgr.GetTask(t.ID)
+	if current != nil && current.Status == model.StatusCancelled {
+		return
+	}
+
 	t.Status = model.StatusCompleted
 	t.Progress = 100
 	t.ElapsedTime = int64(time.Since(startTime).Seconds())
+	s.taskMgr.AppendLog(t.ID, "[完成]")
 	s.taskMgr.UpdateTask(t)
 }

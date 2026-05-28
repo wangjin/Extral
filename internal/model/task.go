@@ -46,6 +46,7 @@ type Task struct {
 	Total       int       `json:"total"`
 	ElapsedTime int64     `json:"elapsedTime"`
 	Error       string    `json:"error"`
+	Logs        []string  `json:"logs"`
 	CreatedAt   time.Time `json:"createdAt"`
 }
 
