@@ -37,6 +37,16 @@ func (m *Manager) Paths() (ffmpeg string, ffprobe string) {
 		ffmpeg = filepath.Join(dir, "ffmpeg")
 		ffprobe = filepath.Join(dir, "ffprobe")
 	}
+
+	// Fallback: look in system PATH
+	if _, err := os.Stat(ffmpeg); os.IsNotExist(err) {
+		if p, err := exec.LookPath("ffmpeg"); err == nil {
+			ffmpeg = p
+		}
+		if p, err := exec.LookPath("ffprobe"); err == nil {
+			ffprobe = p
+		}
+	}
 	return
 }
 
