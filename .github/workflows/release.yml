@@ -39,7 +39,6 @@ jobs:
       - name: Prepare FFmpeg for embedding
         shell: pwsh
         run: |
-          mkdir -p internal/ffmpeg/bin
           cp thirdparty/windows-amd64/ffmpeg.exe internal/ffmpeg/bin/
           cp thirdparty/windows-amd64/ffprobe.exe internal/ffmpeg/bin/
       - run: task package:windows
