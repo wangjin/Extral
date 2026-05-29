@@ -58,6 +58,12 @@ export function useTaskQueue() {
   }, [])
 
   const updateTask = useCallback(async (task: Task) => {
+    if (task.status === 'completed' || task.status === 'failed' || task.status === 'cancelled') {
+      task.status = 'pending'
+      task.progress = 0
+      task.current = 0
+      task.error = ''
+    }
     await Service.UpdateTask(task)
   }, [])
 
