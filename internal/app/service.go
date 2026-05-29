@@ -81,6 +81,8 @@ func (s *Service) ClearTasks() {
 func (s *Service) SelectFiles() []string {
 	result, err := application.Get().Dialog.OpenFile().
 		SetTitle("选择视频文件").
+		AddFilter("视频文件", "*.mp4;*.avi;*.mkv;*.mov;*.flv;*.wmv;*.webm;*.ts;*.m4v").
+		AddFilter("所有文件", "*.*").
 		PromptForMultipleSelection()
 	if err != nil || len(result) == 0 {
 		return nil
@@ -91,6 +93,8 @@ func (s *Service) SelectFiles() []string {
 func (s *Service) SelectFolder() string {
 	result, err := application.Get().Dialog.OpenFile().
 		SetTitle("选择包含视频的文件夹").
+		CanChooseDirectories(true).
+		CanChooseFiles(false).
 		PromptForSingleSelection()
 	if err != nil || result == "" {
 		return ""
@@ -101,6 +105,8 @@ func (s *Service) SelectFolder() string {
 func (s *Service) SelectOutputDir() string {
 	result, err := application.Get().Dialog.OpenFile().
 		SetTitle("选择输出保存路径").
+		CanChooseDirectories(true).
+		CanChooseFiles(false).
 		PromptForSingleSelection()
 	if err != nil || result == "" {
 		return ""
