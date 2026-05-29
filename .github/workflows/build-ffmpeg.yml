@@ -79,7 +79,9 @@ jobs:
             --disable-network \
             --disable-autodetect \
             --disable-x86asm \
-            --extra-ldflags="-static"
+            --extra-ldflags="-static" \
+            --disable-pthreads \
+            --enable-w32threads
 
           make -j$(nproc)
           strip ffmpeg.exe ffprobe.exe
