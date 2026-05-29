@@ -78,7 +78,8 @@ jobs:
             --disable-doc \
             --disable-network \
             --disable-autodetect \
-            --disable-x86asm
+            --disable-x86asm \
+            --extra-ldflags="-static"
 
           make -j$(nproc)
           strip ffmpeg.exe ffprobe.exe
