@@ -95,9 +95,7 @@ jobs:
             --disable-x86asm \
             --extra-ldflags="-static" \
             --extra-cflags="-I/mingw64/include" \
-            --pkg-config-flags="--static" \
-            --disable-pthreads \
-            --enable-w32threads
+            --pkg-config-flags="--static"
 
           make -j$(nproc)
           strip ffmpeg.exe ffprobe.exe
