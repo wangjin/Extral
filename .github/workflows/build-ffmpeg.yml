@@ -95,6 +95,7 @@ jobs:
             --disable-x86asm \
             --extra-ldflags="-static" \
             --extra-cflags="-I/mingw64/include" \
+            --pkg-config-flags="--static" \
             --disable-pthreads \
             --enable-w32threads
 
