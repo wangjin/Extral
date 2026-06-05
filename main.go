@@ -7,6 +7,7 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 
 	"video-extractor/internal/app"
+	"video-extractor/internal/recorder"
 	"video-extractor/internal/updater"
 )
 
@@ -17,12 +18,14 @@ var assets embed.FS
 
 func main() {
 	appService := app.NewService(version)
+	recorderService := recorder.NewService()
 
 	appInstance := application.New(application.Options{
 		Name:        "Extral",
 		Description: "视频抽帧桌面客户端",
 		Services: []application.Service{
 			application.NewService(appService),
+			application.NewService(recorderService),
 			application.NewService(updater.NewService(version, "wangjin/video-extractor")),
 		},
 		Assets: application.AssetOptions{
