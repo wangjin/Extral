@@ -63,32 +63,21 @@ jobs:
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-nasm
             mingw-w64-x86_64-pkg-config
-            mingw-w64-x86_64-x264
             make
             git
             diffutils
 
-      - name: Debug x264
+      - name: Build x264 from source (static)
         run: |
-          export PKG_CONFIG_PATH="/mingw64/lib/pkgconfig"
-          echo "=== pkg-config x264 info ==="
-          pkg-config --exists x264 || (echo "x264 not found by pkg-config" && exit 1)
-          pkg-config --modversion x264
-          echo "--- cflags + libs (static) ---"
-          pkg-config --cflags --libs --static x264
-          echo "--- lib files ---"
+          git clone --depth 1 https://github.com/mirror/x264.git x264-src
+          cd x264-src
+          ./configure --enable-static --disable-shared --disable-cli --prefix=/mingw64
+          make -j$(nproc)
+          make install
+          echo "=== x264 installed ==="
+          pkg-config --modversion x264 || echo "x264 not in pkg-config"
           ls -la /mingw64/lib/libx264* || true
-          echo "--- include files ---"
-          ls -la /mingw64/include/x264* || true
-          echo "--- pkg-config file ---"
-          cat /mingw64/lib/pkgconfig/x264.pc || true
-          echo "--- try compile test ---"
-          cat > /tmp/test_x264.c << 'EOF'
-          #include <x264.h>
-          int main(void) { x264_encoder_open(0); return 0; }
-          EOF
-          gcc -o /tmp/test_x264.exe /tmp/test_x264.c $(pkg-config --cflags --libs --static x264) -static 2>&1 || echo "STATIC FAIL, trying dynamic..."
-          gcc -o /tmp/test_x264.exe /tmp/test_x264.c $(pkg-config --cflags --libs --static x264) 2>&1 || echo "DYNAMIC FAIL too"
+          cat /mingw64/include/x264_config.h | grep -i import || true
 
       - name: Build FFmpeg
         run: |
