@@ -10,3 +10,4 @@ internal/ffmpeg/bin/ffprobe
 .DS_Store
 coverage.out
 coverage.html
+.superpowers/
