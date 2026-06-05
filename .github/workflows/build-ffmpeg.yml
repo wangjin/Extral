@@ -88,9 +88,9 @@ jobs:
             --enable-gpl \
             --disable-doc \
             --disable-network \
-            --disable-autodetect \
             --disable-x86asm \
             --extra-ldflags="-static" \
+            --extra-cflags="-I/mingw64/include" \
             --disable-pthreads \
             --enable-w32threads
 
