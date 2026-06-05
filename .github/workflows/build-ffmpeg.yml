@@ -62,6 +62,7 @@ jobs:
           install: >-
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-nasm
+            mingw-w64-x86_64-pkg-config
             mingw-w64-x86_64-x264
             make
             git
@@ -69,6 +70,9 @@ jobs:
 
       - name: Build FFmpeg
         run: |
+          export PKG_CONFIG_PATH="/mingw64/lib/pkgconfig"
+          pkg-config --exists x264 || (echo "x264 not found by pkg-config" && exit 1)
+
           git clone --branch ${{ env.FFMPEG_VERSION }} --depth 1 https://github.com/FFmpeg/FFmpeg.git ffmpeg-src
           cd ffmpeg-src
 
