@@ -83,7 +83,6 @@ jobs:
             --enable-filter=scale,select,fps,crop \
             --enable-ffmpeg \
             --enable-ffprobe \
-            --enable-dshow \
             --enable-indev=dshow \
             --enable-libx264 \
             --enable-gpl \
