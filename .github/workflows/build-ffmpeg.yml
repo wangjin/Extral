@@ -68,10 +68,31 @@ jobs:
             git
             diffutils
 
+      - name: Debug x264
+        run: |
+          export PKG_CONFIG_PATH="/mingw64/lib/pkgconfig"
+          echo "=== pkg-config x264 info ==="
+          pkg-config --exists x264 || (echo "x264 not found by pkg-config" && exit 1)
+          pkg-config --modversion x264
+          echo "--- cflags + libs (static) ---"
+          pkg-config --cflags --libs --static x264
+          echo "--- lib files ---"
+          ls -la /mingw64/lib/libx264* || true
+          echo "--- include files ---"
+          ls -la /mingw64/include/x264* || true
+          echo "--- pkg-config file ---"
+          cat /mingw64/lib/pkgconfig/x264.pc || true
+          echo "--- try compile test ---"
+          cat > /tmp/test_x264.c << 'EOF'
+          #include <x264.h>
+          int main(void) { x264_encoder_open(0); return 0; }
+          EOF
+          gcc -o /tmp/test_x264.exe /tmp/test_x264.c $(pkg-config --cflags --libs --static x264) -static 2>&1 || echo "STATIC FAIL, trying dynamic..."
+          gcc -o /tmp/test_x264.exe /tmp/test_x264.c $(pkg-config --cflags --libs --static x264) 2>&1 || echo "DYNAMIC FAIL too"
+
       - name: Build FFmpeg
         run: |
           export PKG_CONFIG_PATH="/mingw64/lib/pkgconfig"
-          pkg-config --exists x264 || (echo "x264 not found by pkg-config" && exit 1)
 
           git clone --branch ${{ env.FFMPEG_VERSION }} --depth 1 https://github.com/FFmpeg/FFmpeg.git ffmpeg-src
           cd ffmpeg-src
@@ -95,7 +116,9 @@ jobs:
             --disable-x86asm \
             --extra-ldflags="-static" \
             --extra-cflags="-I/mingw64/include" \
-            --pkg-config-flags="--static"
+            --extra-libs="-lpthread" \
+            --pkg-config-flags="--static" \
+          || (echo "=== Configure failed, last 100 lines of config.log ===" && tail -100 ffbuild/config.log && exit 1)
 
           make -j$(nproc)
           strip ffmpeg.exe ffprobe.exe
