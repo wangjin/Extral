@@ -10,6 +10,9 @@ jobs:
   build-macos-arm64:
     runs-on: macos-latest
     steps:
+      - name: Install libx264
+        run: brew install x264
+
       - name: Build FFmpeg
         run: |
           git clone --branch ${{ env.FFMPEG_VERSION }} --depth 1 https://github.com/FFmpeg/FFmpeg.git ffmpeg-src
@@ -17,15 +20,19 @@ jobs:
 
           ./configure \
             --disable-everything \
-            --enable-decoder=h264,hevc,mjpeg,mpeg4,vp8,vp9 \
+            --enable-decoder=h264,hevc,mjpeg,mpeg4,vp8,vp9,rawvideo \
             --enable-demuxer=mov,matroska,avi,flv,mpjpeg \
             --enable-parser=h264,hevc,mjpeg,mpeg4video,vp8,vp9 \
-            --enable-protocol=file \
-            --enable-muxer=image2 \
-            --enable-encoder=png,mjpeg \
+            --enable-protocol=file,pipe \
+            --enable-muxer=image2,mp4,matroska,image2pipe \
+            --enable-encoder=png,mjpeg,libx264,aac \
             --enable-filter=scale,select,fps,crop \
             --enable-ffmpeg \
             --enable-ffprobe \
+            --enable-avfoundation \
+            --enable-indev=avfoundation \
+            --enable-libx264 \
+            --enable-gpl \
             --disable-doc \
             --disable-network \
             --disable-autodetect
@@ -55,6 +62,7 @@ jobs:
           install: >-
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-nasm
+            mingw-w64-x86_64-x264
             make
             git
             diffutils
@@ -66,15 +74,19 @@ jobs:
 
           ./configure \
             --disable-everything \
-            --enable-decoder=h264,hevc,mjpeg,mpeg4,vp8,vp9 \
+            --enable-decoder=h264,hevc,mjpeg,mpeg4,vp8,vp9,rawvideo \
             --enable-demuxer=mov,matroska,avi,flv,mpjpeg \
             --enable-parser=h264,hevc,mjpeg,mpeg4video,vp8,vp9 \
-            --enable-protocol=file \
-            --enable-muxer=image2 \
-            --enable-encoder=png,mjpeg \
+            --enable-protocol=file,pipe \
+            --enable-muxer=image2,mp4,matroska,image2pipe \
+            --enable-encoder=png,mjpeg,libx264,aac \
             --enable-filter=scale,select,fps,crop \
             --enable-ffmpeg \
             --enable-ffprobe \
+            --enable-dshow \
+            --enable-indev=dshow \
+            --enable-libx264 \
+            --enable-gpl \
             --disable-doc \
             --disable-network \
             --disable-autodetect \
