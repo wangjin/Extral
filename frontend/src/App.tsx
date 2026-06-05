@@ -4,6 +4,7 @@ import ConfigPanel from './components/ConfigPanel'
 import ActionBar from './components/ActionBar'
 import UpdateToast from './components/UpdateToast'
 import UpdateModal from './components/UpdateModal'
+import RecorderPanel from './components/RecorderPanel'
 import { useTaskQueue } from './hooks/useTaskQueue'
 import { useUpdate } from './hooks/useUpdate'
 import { useState, useCallback, useEffect } from 'react'
@@ -29,6 +30,7 @@ function App() {
   const [showUpdateModal, setShowUpdateModal] = useState(false)
   const [showLogs, setShowLogs] = useState(false)
   const [version, setVersion] = useState('')
+  const [activeTab, setActiveTab] = useState<'extract' | 'record'>('extract')
 
   useEffect(() => {
     AppService.GetVersion().then(v => setVersion(v)).catch(() => {})
@@ -76,51 +78,71 @@ function App() {
           <div className="toolbar-title">Extral</div>
           {version && <span className="toolbar-version">{version}</span>}
         </div>
-        <div className="toolbar-actions">
-          <button className="btn btn-primary" onClick={addFiles}>选择视频</button>
-          <button className="btn btn-secondary" onClick={addFolder}>选择文件夹</button>
+        <div className="toolbar-tabs">
+          <button
+            className={`toolbar-tab ${activeTab === 'extract' ? 'active' : ''}`}
+            onClick={() => setActiveTab('extract')}
+          >抽帧</button>
+          <button
+            className={`toolbar-tab ${activeTab === 'record' ? 'active' : ''}`}
+            onClick={() => setActiveTab('record')}
+          >录制</button>
         </div>
+        {activeTab === 'extract' ? (
+          <div className="toolbar-actions">
+            <button className="btn btn-primary" onClick={addFiles}>选择视频</button>
+            <button className="btn btn-secondary" onClick={addFolder}>选择文件夹</button>
+          </div>
+        ) : (
+          <div className="toolbar-actions" />
+        )}
       </header>
 
-      <TaskList
-        tasks={tasks}
-        selectedTaskId={selectedTaskId}
-        onSelectTask={selectTask}
-        onRemoveTask={removeTask}
-        onCancelTask={cancelTask}
-      />
+      {activeTab === 'extract' ? (
+        <>
+          <TaskList
+            tasks={tasks}
+            selectedTaskId={selectedTaskId}
+            onSelectTask={selectTask}
+            onRemoveTask={removeTask}
+            onCancelTask={cancelTask}
+          />
 
-      {selectedTask && (
-        <ConfigPanel
-          task={selectedTask}
-          onUpdateTask={updateTask}
-          onSelectOutputDir={selectOutputDir}
-        />
-      )}
-
-      {selectedTask && selectedTask.status !== 'pending' && (
-        <div className="log-panel">
-          <div className="log-header" onClick={() => setShowLogs(!showLogs)}>
-            <span className="log-header-title">执行日志 ({(selectedTask.logs || []).length})</span>
-            <span className="log-toggle">{showLogs ? '收起' : '展开'}</span>
-          </div>
-          {showLogs && (
-            <pre className="log-content">
-              {(selectedTask.logs || []).map((line, i) => (
-                <div key={i} className={`log-line ${line.startsWith('[命令') || line.startsWith('[错误') || line.startsWith('[完成') ? 'log-line-highlight' : ''}`}>
-                  {line}
-                </div>
-              ))}
-            </pre>
+          {selectedTask && (
+            <ConfigPanel
+              task={selectedTask}
+              onUpdateTask={updateTask}
+              onSelectOutputDir={selectOutputDir}
+            />
           )}
-        </div>
-      )}
 
-      <ActionBar
-        tasks={tasks}
-        onStartAll={startAll}
-        onClear={clearTasks}
-      />
+          {selectedTask && selectedTask.status !== 'pending' && (
+            <div className="log-panel">
+              <div className="log-header" onClick={() => setShowLogs(!showLogs)}>
+                <span className="log-header-title">执行日志 ({(selectedTask.logs || []).length})</span>
+                <span className="log-toggle">{showLogs ? '收起' : '展开'}</span>
+              </div>
+              {showLogs && (
+                <pre className="log-content">
+                  {(selectedTask.logs || []).map((line, i) => (
+                    <div key={i} className={`log-line ${line.startsWith('[命令') || line.startsWith('[错误') || line.startsWith('[完成') ? 'log-line-highlight' : ''}`}>
+                      {line}
+                    </div>
+                  ))}
+                </pre>
+              )}
+            </div>
+          )}
+
+          <ActionBar
+            tasks={tasks}
+            onStartAll={startAll}
+            onClear={clearTasks}
+          />
+        </>
+      ) : (
+        <RecorderPanel />
+      )}
 
       {status === 'available' && !showUpdateModal && info && (
         <UpdateToast info={info} onViewDetails={handleViewDetails} onDismiss={handleDismissToast} />
